@@ -1,0 +1,41 @@
+input[readonly] {
+  background-color: #fff !important;
+  cursor: pointer !important;
+}
+
+.grid {
+  cursor: pointer;
+}
+
+.btnSelect {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  z-index: 9999;
+}
+
+#btnSelectAll {
+  cursor: pointer;
+  margin-right: 5px;
+}
+
+.previewer {
+  position: absolute;
+  z-index: 99999;
+  border: 1px solid #94A1AC;
+}
+
+.input-term {
+  display: inline !important;
+  width: 120px !important;
+  text-align: center;
+}
+
+#term_to {
+  margin-left: 10px;
+}
+
+#btnSave {
+  vertical-align: baseline !important;
+  margin-left: 10px;
+}

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/bootstrap-toggle.min.css">
+    <link rel="stylesheet" href="css/options.css">
+  </head>
+
+  <body>
+    <div class="sidebar">
+      <a href="#" class="logo"></a>
+      <a href="options.html?page=settings" title="Settings" class="sideitem" id="settings">
+        <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+      </a>
+      <a href="options.html?page=about" title="About" class="sideitem" id="about">
+        <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+      </a>
+    </div>
+    <div class="contents">
+      <div class="page" id="settings">
+        <div class="page-header">
+          <h3>옵션</h3>
+        </div>
+
+        <div class="row option-item">
+          <div class="col-md-8 option-item-title">
+            <label>호칭 자동 설정</label>
+            <small>이 옵션을 켜면 로그인 시 입력해 둔 호칭으로 자동 설정합니다</small>
+          </div>
+          <div class="col-md-2">
+            <input id="nickname" type="text" class="form-control" placeholder="호칭" disabled>
+          </div>
+          <div class="checkbox col-md-2">
+            <input id="useNickname" class="onoff" type="checkbox" data-toggle="toggle" target="nickname">
+          </div>
+        </div>
+        <div class="row option-item">
+          <div class="col-md-8 option-item-title">
+            <label>자녀 자동 선택</label>
+            <small>이 옵션을 켜면 로그인 시 입력해 둔 자녀를 자동으로 선택합니다</small>
+          </div>
+          <div class="col-md-2">
+            <input id="child" type="text" class="form-control" placeholder="자녀" disabled>
+          </div>
+          <div class="checkbox col-md-2">
+            <input id="useChild" class="onoff" type="checkbox" data-toggle="toggle" target="child">
+          </div>
+        </div>
+        <div class="row option-item">
+          <div class="col-md-10 option-item-title">
+            <label>이전 기간 참고</label>
+            <small>일괄 다운로드 기간의 기본값을 이전값을 참고하여 설정합니다</small>
+          </div>
+          <div class="checkbox col-md-2">
+            <input id="useTerm" class="onoff" type="checkbox" data-toggle="toggle">
+          </div>
+        </div>
+        <div class="row option-item">
+          <div class="col-md-8 option-item-title">
+            <label>다운로드 지연</label>
+            <small>다운로드 시 파일 누락 방지를 위한 지연시간을 설정합니다<br/>* 1초 : 1000 ms</small>
+          </div>
+          <div class="checkbox col-md-2">
+            <input id="downDelay" type="text" class="form-control" placeholder="100" value="100">
+          </div>
+          <span class="col-md-2">ms</span>
+        </div>
+        <div class="buttons">
+          <button id="btnSave" type="button" class="btn btn-primary">저장</button>
+        </div>
+      </div>
+      <div class="page" id="about">
+        <div class="page-header">
+          <h3>KidsNote Downloader v<span id="version"></span></h3>
+        </div>
+
+        <div class="row desc-item">
+          <div class="col-md-12 desc-item-title">
+            <label>이렇게 바뀌었습니다!</label>
+            <ul class="desc">
+              <li>
+                  호칭, 아이 자동 설정 기능이 추가 되었습니다.<br/>
+                  로그인 시 '<a href="options.html?page=settings">옵션-호칭 자동 설정</a>' 에 지정한 호칭으로 자동 설정할 수 있습니다.<br/>
+                  '<a href="options.html?page=settings">옵션-자녀 자동 선택</a>' 에서 지정한 자녀로 자동 설정하는것도 가능합니다!
+              </li>
+              <li>
+                알림장, 앨범에서 일괄 다운로드 기능이 추가 되었습니다.<br/>
+                기간을 지정하여 해당하는 파일들만 한번에 압축파일로 다운 받을 수 있습니다.<br/>
+                '<a href="options.html?page=settings">옵션-이전 기간 참고</a>' 를 통해 기간 선택을 편리하게 할 수 있습니다.<br/>
+                * 다운로드 대상이 많을 경우 다소 시간이 소요될 수 있습니다.
+              </li>
+              <li>
+                사진을 선택하여 다운로드 할 때, 누락되는 파일이 없도록 기능이 안정화 되었습니다.<br/>
+                누락되는 파일이 있을 경우 '<a href="options.html?page=settings">옵션-다운로드 지연</a>' 값을 늘려서 해결할 수 있습니다 (기본값 100ms).
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row desc-item">
+          <div class="col-md-12 desc-item-title">
+            <label>이용해 주셔서 감사합니다!</label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/bootstrap-toggle.min.js"></script>
+    <script src="js/options.js"></script>
+  </body>
+
+</html>
