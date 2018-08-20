@@ -13,5 +13,15 @@ chrome.runtime.onInstalled.addListener(function () {
     chrome.declarativeContent.onPageChanged.addRules([rules]);
   });
 
-  chrome.tabs.create({ url: chrome.extension.getURL("options.html?page=about") }, function (tab) {});
+  chrome.storage.local.get('version', function (result) {
+    if (result.version == undefined || result.version != chrome.app.getDetails().version) {
+      chrome.tabs.create({
+        url: chrome.extension.getURL("options.html?page=about")
+      }, function (tab) {});
+
+      chrome.storage.local.set({
+        'version': chrome.app.getDetails().version
+      });
+    }
+  });
 });

@@ -60,7 +60,8 @@
         <div class="row option-item">
           <div class="col-md-8 option-item-title">
             <label>다운로드 지연</label>
-            <small>다운로드 시 파일 누락 방지를 위한 지연시간을 설정합니다<br/>* 1초 : 1000 ms</small>
+            <small>다운로드 시 파일 누락 방지를 위한 지연시간을 설정합니다
+              <br/>* 1초 : 1000 ms</small>
           </div>
           <div class="checkbox col-md-2">
             <input id="downDelay" type="text" class="form-control" placeholder="100" value="100">
@@ -75,31 +76,46 @@
         <div class="page-header">
           <h3>KidsNote Downloader v<span id="version"></span></h3>
         </div>
-
-        <div class="row desc-item">
-          <div class="col-md-12 desc-item-title">
+        <div class="page-contents">
+          <ul class="desc">
+            <li>
+              호칭 및 자녀를 자동으로 설정할 수 있습니다.
+              <br/> 로그인 시 '
+              <a href="options.html?page=settings">옵션-호칭 자동 설정</a>' 에 지정한 호칭으로 자동 설정할 수 있습니다.
+              <br/> '
+              <a href="options.html?page=settings">옵션-자녀 자동 선택</a>' 에서 지정한 자녀로 자동 설정하는것도 가능합니다!
+              <br/>
+              <br/>
+            </li>
+            <li>
+              알림장, 앨범에서 일괄 다운로드가 가능합니다.
+              <br/> 기간을 지정하여 해당하는 파일들만 한번에 압축파일로 다운 받을 수 있습니다.
+              <br/> '
+              <a href="options.html?page=settings">옵션-이전 기간 참고</a>' 를 통해 기간 선택을 편리하게 할 수 있습니다.
+              <br/> * 다운로드 대상이 많을 경우 다소 시간이 소요될 수 있습니다.
+              <br/>
+              <br/>
+            </li>
+            <li>
+              사진을 선택하여 다운로드 할 때, 누락되는 파일이 없도록 조정할 수 있습니다.
+              <br/> 누락되는 파일이 있을 경우 '
+              <a href="options.html?page=settings">옵션-다운로드 지연</a>' 값을 늘려서 해결할 수 있습니다 (기본값 100ms).
+              <br/>
+              <br/>
+            </li>
+          </ul>
+          <div class="col-md-12 desc-title">
             <label>이렇게 바뀌었습니다!</label>
-            <ul class="desc">
-              <li>
-                  호칭, 아이 자동 설정 기능이 추가 되었습니다.<br/>
-                  로그인 시 '<a href="options.html?page=settings">옵션-호칭 자동 설정</a>' 에 지정한 호칭으로 자동 설정할 수 있습니다.<br/>
-                  '<a href="options.html?page=settings">옵션-자녀 자동 선택</a>' 에서 지정한 자녀로 자동 설정하는것도 가능합니다!
-              </li>
-              <li>
-                알림장, 앨범에서 일괄 다운로드 기능이 추가 되었습니다.<br/>
-                기간을 지정하여 해당하는 파일들만 한번에 압축파일로 다운 받을 수 있습니다.<br/>
-                '<a href="options.html?page=settings">옵션-이전 기간 참고</a>' 를 통해 기간 선택을 편리하게 할 수 있습니다.<br/>
-                * 다운로드 대상이 많을 경우 다소 시간이 소요될 수 있습니다.
-              </li>
-              <li>
-                사진을 선택하여 다운로드 할 때, 누락되는 파일이 없도록 기능이 안정화 되었습니다.<br/>
-                누락되는 파일이 있을 경우 '<a href="options.html?page=settings">옵션-다운로드 지연</a>' 값을 늘려서 해결할 수 있습니다 (기본값 100ms).
-              </li>
-            </ul>
           </div>
-        </div>
-        <div class="row desc-item">
-          <div class="col-md-12 desc-item-title">
+          <ul class="desc">
+            <li>
+              불필요하게 옵션 페이지가 활성화되지 않도록 수정하였습니다.
+            </li>
+            <li>
+              안내 페이지 레이아웃을 변경하였습니다.
+            </li>
+          </ul>
+          <div class="col-md-12 desc-title">
             <label>이용해 주셔서 감사합니다!</label>
           </div>
         </div>

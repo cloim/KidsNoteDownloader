@@ -45,7 +45,7 @@ a.sideitem.active {
   max-width: 700px;
 }
 
-.option-item, .desc-item {
+.option-item {
   display: flex;
   align-items: center;
   margin-bottom: 15px;
@@ -55,15 +55,18 @@ a.sideitem.active {
   color: #A9A9A9;
 }
 
+.desc-title {
+  margin-top: 10px;
+  padding-left: 0px;
+}
+
 ul.desc {
   font-size: 12px;
-  margin-top: 10px;
   margin-left: 0px;
   padding-left: 0px;
 }
 
 ul.desc>li {
-  margin-top: 20px;
   margin-left: 20px;
   list-style-type: circle;
   display: list-item;
