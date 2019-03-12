@@ -42,7 +42,7 @@ a.sideitem.active {
 
 .contents {
   padding: 0 0 0 120px;
-  max-width: 700px;
+  max-width: 900px;
 }
 
 .option-item {
@@ -75,6 +75,11 @@ ul.desc>li {
 
 li>a {
   display: inline;
+}
+
+li>b {
+  display: inline;
+  color: #F44336;
 }
 
 .form-control {

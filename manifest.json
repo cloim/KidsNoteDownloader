@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "KidsNote Downloader",
-  "version": "1.9",
+  "version": "2.0",
   "author": "cloim",
   "description": "Downloader for KidsNote",
   "icons": {

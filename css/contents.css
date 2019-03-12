@@ -11,7 +11,7 @@ input[readonly] {
   position: absolute;
   top: 5px;
   left: 5px;
-  z-index: 9999;
+  z-index: 99;
 }
 
 #btnSelectAll {
@@ -38,4 +38,8 @@ input[readonly] {
 #btnSave {
   vertical-align: baseline !important;
   margin-left: 10px;
+}
+
+.modal {
+  z-index: 999;
 }

@@ -69,11 +69,18 @@ function updateUI() {
 }
 
 function setOPTIONS() {
-  OPTIONS.nickname.use = $('#useNickname').prop('checked') ? 'on' : 'off';
-  OPTIONS.nickname.name = $('#nickname').val();
-  OPTIONS.child.use = $('#useChild').prop('checked') ? 'on' : 'off';
-  OPTIONS.child.name = $('#child').val();
-  OPTIONS.term.use = $('#useTerm').prop('checked') ? 'on' : 'off';
+  var useNickname = $('#useNickname').prop('checked');
+  OPTIONS.nickname.use = useNickname ? 'on' : 'off';
+  OPTIONS.nickname.name = useNickname ? $('#nickname').val() : '';
+
+  var useChild = $('#useChild').prop('checked');
+  OPTIONS.child.use = useChild ? 'on' : 'off';
+  OPTIONS.child.name = useChild ? $('#child').val() : '';
+
+  var useTerm = $('#useTerm').prop('checked');
+  OPTIONS.term.use = useTerm ? 'on' : 'off';
+  if (!useTerm) OPTIONS.term.prev_date = [];
+
   OPTIONS.down_delay = $('#downDelay').val();
 
   chrome.storage.sync.set(OPTIONS, function () {

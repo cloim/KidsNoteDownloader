@@ -36,40 +36,59 @@ $("ul[class='nav header-nav header-right'] li.dropdown").on("click", e => {
 
 chrome.storage.sync.get(OPTIONS, items => {
   OPTIONS = items;
-  Check();
+
+  setNickName()
+    .then(() => {
+      return setChildName();
+    })
+    .then(() => {
+      init();
+    })
+    .catch(err => {
+      alert(err);
+    });
 });
 
-function Check() {
-  var url, data;
+function setNickName() {
+  return new Promise((resolve, reject) => {
+    if ($("#roleSelect").text().trim() != "호칭 설정") return resolve();
+    if (OPTIONS.nickname.use != 'on') return resolve();
 
-  if ($("#roleSelect").text().trim() == "호칭 설정") {
-    if (OPTIONS.nickname.use == 'on') {
-      var roleSelect = $(`form[action='${ROLE_URL}']:first`);
-      url = `${BASE_URI}${ROLE_URL}`;
-      data = {
-        csrfmiddlewaretoken: roleSelect.find("input[name='csrfmiddlewaretoken']").val(),
-        nickname: OPTIONS.nickname.name,
-        next: roleSelect.find("input[name='next']").val()
-      }
-
-      $.ajax({ type: "POST", url: url, data: data }).then(() => {
-        if (OPTIONS.child.use == 'on') {
-          var curSelectedChildName = $("img.header-img").attr("alt");
-          if (curSelectedChildName != OPTIONS.child.name) {
-            $("form[id^='activateForm-'][action^='/accounts/parents/children/activate/']").each((index, element) => {
-              var childName = $(element).find("p[class='dropdown-display-name']").text().trim();
-              if (childName == OPTIONS.child.name) $(element).submit();
-            });
-          }
-        }
-      });
+    var roleSelect = $(`form[action='${ROLE_URL}']:first`);
+    var url = `${BASE_URI}${ROLE_URL}`;
+    var data = {
+      csrfmiddlewaretoken: roleSelect.find("input[name='csrfmiddlewaretoken']").val(),
+      nickname: OPTIONS.nickname.name,
+      next: roleSelect.find("input[name='next']").val()
     }
-  } else {
-    Initialize();
-  }
+
+    return $.ajax({
+      type: "POST",
+      url: url,
+      data: data
+    }).then(() => {
+      return resolve();
+    });
+  });
 }
 
-function Initialize() {
+function setChildName() {
+  return new Promise((resolve, reject) => {
+    if (OPTIONS.child.use != 'on') return resolve();
+    var curSelectedChildName = $("img.header-img").attr("alt");
+    if (curSelectedChildName == OPTIONS.child.name) return resolve();
+
+    $("form[id^='activateForm-'][action^='/accounts/parents/children/activate/']").each((index, element) => {
+      var childName = $(element).find("p[class='dropdown-display-name']").text().trim();
+      if (childName == OPTIONS.child.name) {
+        resolve();
+        $(element).submit();
+      }
+    });
+  });
+}
+
+function init() {
   moment.updateLocale('ko', {
     weekdays: ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"],
     weekdaysShort: ["일", "월", "화", "수", "목", "금", "토"],
@@ -86,47 +105,22 @@ function Initialize() {
   var matches = regexpStr.exec(document.URL);
   CUR_MENU = matches[1];
 
-  console.log(OPTIONS);
-
-  if (CUR_MENU != 'home') {
-    var articleNo = matches[2];
-
-    if (articleNo == undefined) {
-      getPrevDate().then(termFrom => {
-        return createTerm(termFrom, moment().format("YYYY-MM-DD"));
-      });
-    } else {
-      createButtons();
-    }
+  if (CUR_MENU == 'home') return;
+  if (matches[2] == undefined) {
+    getPrevDate().then(termFrom => {
+      return createTermAtAlbumPage(termFrom, moment().format("YYYY-MM-DD"));
+    });
+  } else {
+    createButtonsInArticle();
   }
 }
 
-// #region 일괄 다운로드
-function getPrevDate() {
-  return new Promise((resolve, reject) => {
-    var childName = $("img.header-img").attr("alt");
-    var foundIndex = -1;
-
-    for (var i = 0; i < OPTIONS.term.prev_date.length; i++) {
-      if (OPTIONS.term.prev_date[i].name == childName && OPTIONS.term.prev_date[i].menu == CUR_MENU) {
-        foundIndex = i;
-        break;
-      }
-    }
-
-    if (foundIndex > -1) {
-      resolve(OPTIONS.term.prev_date[foundIndex].date);
-    } else {
-      resolve(getFirstArticlesDateString());
-    }
-  });
-}
-
-function createTerm(from, to) {
+// #region 기간 다운로드
+function createTermAtAlbumPage(from, to) {
   var dateDiv = $(`<div class="button-wrapper pull-left"></div>`).prependTo("div[class='sub-nav-inner']");
   var termFrom = $(`<input type="text" id="term_fr" name="term_fr" class="input-term form-control" readonly>`);
   termFrom.appendTo(dateDiv);
-  var termTo = $(`<input type="text" id="term_to" name="term_to" class="input-term form-control">`);
+  var termTo = $(`<input type="text" id="term_to" name="term_to" class="input-term form-control" readonly>`);
   termTo.appendTo(dateDiv);
   var btnDownload = $('<button id="btnSave" type="button" class="btn btn-primary">다운로드</button>');
   btnDownload.appendTo(dateDiv).on("click", (e) => {
@@ -136,104 +130,174 @@ function createTerm(from, to) {
   $('#term_fr').datetimepicker({
     format: 'YYYY-MM-DD',
     dayViewHeaderFormat: 'YYYY년 MM월',
-    maxDate: to,
     useCurrent: false,
     defaultDate: from,
     showTodayButton: true,
     ignoreReadonly: true
-  }).on("dp.change", (e) => {
-    if (!isValidTerm(e.date, $('#term_to').val())) $('#term_to').val('');
   });
 
   $('#term_to').datetimepicker({
     format: 'YYYY-MM-DD',
     dayViewHeaderFormat: 'YYYY년 MM월',
-    minDate: from,
-    maxDate: to,
     useCurrent: false,
     defaultDate: to,
     showTodayButton: true,
     ignoreReadonly: true
-  }).on("dp.change", (e) => {
-    $('#term_fr').data("DateTimePicker").maxDate(e.date);
-    if (!isValidTerm($('#term_fr').val(), e.date)) $('#term_fr').val('');
   });
 }
 
 function downloadTerm(from, to) {
-  let zip = new JSZip();
+  if (!isValidTerm(from, to)) {
+    alert("기간이 올바르지 않습니다");
+    return;
+  }
+  var links_cnt = 0;
 
   showProgressBar();
-  setPrevDate(to);
-  setProgress(10);
+  if (OPTIONS.term.use == 'on') setPrevDate(to);
 
-  getLastPageIndex().then(last_page_index => {
-    var indexes = [];
-    for (var i = last_page_index; i > 0; i--) indexes.push(i);
-    setProgress(15, "주소를 탐색하고 있습니다");
-    return Promise.all(indexes.map(index => getArticleAddressesInPage(index)));
-  }).then(article_addresses_in_pages => {
-    setProgress(25);
-    return Promise.all(article_addresses_in_pages.reduce((a, b) => a.concat(b)));
-  }).then(total_article_addresses => {
-    setProgress(30);
-    return Promise.all(total_article_addresses.map(article_address => getArticle(article_address, from, to)));
-  }).then(articles => {
-    setProgress(35, "기간 필터 중 입니다");
-    return articles.filter((article, index) => {
-      if (article.length > 0) return true;
-      return false;
+  getLastPageIndex()
+    .then(last_page_index => {
+      setProgress(2, "페이지 링크를 수집하고 있습니다");
+
+      var indexes = [];
+      for (var i = last_page_index; i > 0; i--) indexes.push(i);
+
+      return Promise.all(indexes.map(index => {
+        return getArticleAddressesInPage(index);
+      }));
+    })
+    .then(article_addresses_in_pages => {
+      setProgress(5);
+      if (article_addresses_in_pages.length == 1) return article_addresses_in_pages[0];
+      return Promise.all(article_addresses_in_pages.reduce((a, b) => a.concat(b)));
+    })
+    .then(total_article_addresses => {
+      setProgress(10, "게시물 링크를 수집하고 있습니다");
+
+      return Promise.all(total_article_addresses.map(article_address => {
+        return getArticles(article_address, from, to);
+      }));
+    })
+    .then(articles => {
+      setProgress(11);
+      if (articles.length == 0) return Promise.reject("대상 게시물이 없습니다");
+
+      return articles.filter((article) => {
+        if (article.length > 0) return true;
+        return false;
+      });
+    })
+    .then(articles => {
+      setProgress(12, "게시물 링크를 정리하고 있습니다");
+      return Promise.all(articles.reduce((a, b) => a.concat(b)));
+    })
+    .then(links => {
+      setProgress(13);
+
+      links_cnt = links.length;
+      return createTargets(links);
+    })
+    .then(targets => {
+      var progress = {
+        base: 20
+      }
+      progress.tick = (90 - progress.base) / links_cnt;
+      setProgress(progress.base, "다운로드를 시작 합니다");
+      var months = Object.getOwnPropertyNames(targets);
+
+      return months.reduce((p, month) => {
+        return p.then(() => {
+          return createZip(targets[month], progress);
+        });
+      }, Promise.resolve()).then(() => {
+        setProgress(100, "다운로드 완료");
+      });
+    })
+    .catch(err => {
+      alert(err);
+    })
+    .finally(() => {
+      closeProgressBar();
     });
-  }).then(filtered_articles => {
-    if (filtered_articles.length > 0) {
-      setProgress(40);
-      return Promise.all(filtered_articles.reduce((a, b) => a.concat(b)));
-    } else {
-      setProgress(0);
-      return Promise.reject("대상 기간에 다운로드할 파일이 없습니다");
-    }
-  }).then(targets => {
-    setProgress(50, "다운로드 중 입니다");
-    return Promise.all(targets.map(target => addArticleBinariesToZip(target, zip)));
-  }).then(() => {
-    setProgress(95, "압축파일을 생성 합니다");
-    return zip.generateAsync({ type: "blob" });
-  }).then(blob => {
-    setProgress(100);
-    downloadFileFromBlob(blob, `${from}~${to}-${CUR_MENU == "reports" ? "알림장" : "앨범"}.zip`);
-  }).catch(err => {
-    alert(err);
-  }).finally(() => {
-    closeProgressBar();
+}
+
+function createTargets(links) {
+  return new Promise((resolve, reject) => {
+    var targets = {};
+
+    links.forEach((link) => {
+      var ym = link.date.format("YYYYMM");
+
+      if (!targets.hasOwnProperty(ym)) {
+        targets[ym] = {
+          zip: new JSZip(),
+          links: []
+        }
+      }
+      targets[ym].links.push(link);
+    });
+    return resolve(targets);
   });
 }
 
-function setPrevDate(date) {
-  var childName = $("img.header-img").attr("alt");
-  var today = moment().format("YYYY-MM-DD");
-  var fromDate = moment(date).add(1, "days").format("YYYY-MM-DD");
-  if (moment(fromDate).diff(moment(today), 'days') > 0) fromDate = today;
+function createZip(month, progress) {
+  var ym = month.links[0].date.format("YYYY-MM");
 
-  var prev_date = {
-    name: childName,
-    menu: CUR_MENU,
-    date: fromDate
-  }
-  var foundIndex = -1;
+  return Promise.all(month.links.map(link => {
+      var prg_value = progress.base + progress.tick;
+      progress.base = prg_value;
 
-  for (var i = 0; i < OPTIONS.term.prev_date.length; i++) {
-    if (OPTIONS.term.prev_date[i].name == childName && OPTIONS.term.prev_date[i].menu == CUR_MENU) {
-      foundIndex = i;
-      break;
+      return getBlobFromURL(link.url, 1)
+        .then(data => {
+          setProgress(prg_value, ym + " 다운로드 중...");
+          var filename = link.filename + link.extension;
+
+          if (month.zip.file(filename) != null) filename = link.filename + "_2" + link.extension;
+          return month.zip.file(filename, data);
+        });
+    }))
+    .then(() => {
+      setProgress(-1, ym + " 압축파일 생성 중...");
+
+      return month.zip.generateAsync({
+          type: "blob"
+        })
+        .then(blob => {
+          var filename = `${ym}-${CUR_MENU == "reports" ? "알림장" : "앨범"}.zip`;
+          setProgress(-1, filename + " 다운로드 중...");
+          return downloadFileFromBlob(blob, filename);
+        });
+    });
+}
+
+function getArticles(url, from, to) {
+  return ajaxGet(url).then(source => {
+    var links = [];
+    var date_string = $(source).find(DATE_SELECTOR).text();
+    var date, title;
+
+    if (CUR_MENU == 'reports') {
+      date = moment(date_string, REPORTS_DATE_FORMAT);
+      title = "알림장";
+    } else if (CUR_MENU == 'albums') {
+      date = moment(date_string, ALBUMS_DATE_FORMAT);
+      title = $(source).find("h3[class='sub-header-title']").text().trim();
     }
-  }
 
-  if (foundIndex > -1) {
-    OPTIONS.term.prev_date[foundIndex] = prev_date;
-  } else {
-    OPTIONS.term.prev_date.push(prev_date);
-  }
-  chrome.storage.sync.set(OPTIONS, function () { });
+    if (date.isBetween(moment(from).add(-1, "days"), moment(to).add(1, "days"))) {
+      $(source).find("div.grid a").each((index, element) => {
+        var downloadUrl = $(element).attr("data-download");
+        links.push({
+          date: date,
+          url: downloadUrl,
+          filename: `${date.format("YYYY-MM-DD")}-${title}-${index}}`,
+          extension: downloadUrl.slice(-4)
+        });
+      });
+    }
+    return links;
+  });
 }
 
 function getArticleAddressesInPage(pageIndex) {
@@ -252,42 +316,52 @@ function getArticleAddressesInPage(pageIndex) {
   });
 }
 
-function getArticle(url, from, to) {
+function getArticleDateString(url) {
   return ajaxGet(url).then(source => {
-    var article = [];
     var date_string = $(source).find(DATE_SELECTOR).text();
-    var date, title;
 
     if (CUR_MENU == 'reports') {
-      date = moment(date_string, REPORTS_DATE_FORMAT).format("YYYY-MM-DD");
-      title = "알림장";
+      return moment(date_string, REPORTS_DATE_FORMAT).format("YYYY-MM-DD");
     } else if (CUR_MENU == 'albums') {
-      date = moment(date_string, ALBUMS_DATE_FORMAT).format("YYYY-MM-DD");
-      title = $(source).find("h3[class='sub-header-title']").text().trim();
+      return moment(date_string, ALBUMS_DATE_FORMAT).format("YYYY-MM-DD");
     }
-
-    if (moment(date).isBetween(moment(from).add(-1, "days"), moment(to).add(1, "days"))) {
-      $(source).find("div.grid a").each((index, element) => {
-        var downloadUrl = $(element).attr("data-download");
-        article.push({
-          url: downloadUrl,
-          fileName: `${date}-${title}-${index}${downloadUrl.slice(-4)}`
-        });
-      });
-    }
-    return article;
   });
 }
 
-function addArticleBinariesToZip(target, zip) {
-  return getBlobFromURL(target.url).then(data => {
-    zip.file(target.fileName, data);
+function getFirstArticlesDateString() {
+  return getLastPageIndex().then(last_page_index => {
+    var url = `${BASE_URI}/${CUR_MENU}/?page=${last_page_index}`;
+
+    return ajaxGet(url).then(source => {
+      var selector = "";
+
+      if (CUR_MENU == 'reports') {
+        selector = ".report-list-wrapper a:last";
+      } else if (CUR_MENU == 'albums') {
+        selector = ".album-list-wrapper a:last";
+      }
+      return getArticleDateString(BASE_URI + $(source).find(selector).attr("href"));
+    });
   });
 }
-// #endregion 일괄 다운로드
+
+function getLastPageIndex() {
+  return new Promise((resolve, reject) => {
+    var last_page_index = 1;
+    var paging = $("ul[class='pagination pagination-sm'] li");
+
+    if (paging.length > 0) {
+      last_page_index = $(paging[paging.length - 1]).text().trim();
+      if (last_page_index == ">") last_page_index = $(paging[paging.length - 2]).text().trim();
+    }
+
+    resolve(last_page_index);
+  });
+}
+// #endregion 기간 다운로드
 
 // #region 게시물 내 다운로드
-function createButtons() {
+function createButtonsInArticle() {
   $("div[class='grid']").each((index, element) => {
     var a = $(element).find("a");
     var img = $(element).find("img");
@@ -476,40 +550,67 @@ function downloadFiles(index, file) {
 }
 // #endregion 게시물 내 다운로드
 
-// #region 상태 진행 바 팝업
-function showProgressBar() {
-  if (PROGRESS_MODAL == undefined) {
-    var modal = '<div class="modal fade" id="pleaseWaitDialog" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">';
-    modal += '<div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h2>다운로드 중 입니다</h2></div>';
-    modal += '<div class="modal-body"><div class="progress">';
-    modal += '<div id="progress-bar" class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar">';
-    modal += '<span class="sr-only">0%</span></div></div></div></div></div></div>';
-
-    PROGRESS_MODAL = $(modal);
-    PROGRESS_MODAL.appendTo("body");
-  }
-  PROGRESS_MODAL.modal('show');
-}
-
-function setProgress(progress, message) {
-  if (PROGRESS_MODAL != undefined) {
-    if (message != undefined) $("div.modal-header h2").text(message);
-    $("#progress-bar").css("width", `${progress}%`);
-  }
-}
-
-function closeProgressBar() {
-  if (PROGRESS_MODAL != undefined) {
-    PROGRESS_MODAL.modal('hide');
-  }
-}
-// #endregion 상태 진행 바 팝업
-
+// #region 공통
 function ajaxGet(url) {
   return new Promise((resolve, reject) => $.get(url).done(resolve).fail((a, b, c) => reject(c || a || b)));
 }
 
-function getBlobFromURL(url) {
+function getPrevDate() {
+  return new Promise((resolve, reject) => {
+    var childName = $("img.header-img").attr("alt");
+    var foundIndex = -1;
+
+    for (var i = 0; i < OPTIONS.term.prev_date.length; i++) {
+      if (OPTIONS.term.prev_date[i].name == childName && OPTIONS.term.prev_date[i].menu == CUR_MENU) {
+        foundIndex = i;
+        break;
+      }
+    }
+
+    if (foundIndex > -1) {
+      resolve(OPTIONS.term.prev_date[foundIndex].date);
+    } else {
+      resolve(getFirstArticlesDateString());
+    }
+  });
+}
+
+function setPrevDate(date) {
+  var childName = $("img.header-img").attr("alt");
+  var today = moment().format("YYYY-MM-DD");
+  var fromDate = moment(date).add(1, "days").format("YYYY-MM-DD");
+  if (moment(fromDate).diff(moment(today), 'days') > 0) fromDate = today;
+
+  var prev_date = {
+    name: childName,
+    menu: CUR_MENU,
+    date: fromDate
+  }
+  var foundIndex = -1;
+
+  for (var i = 0; i < OPTIONS.term.prev_date.length; i++) {
+    if (OPTIONS.term.prev_date[i].name == childName && OPTIONS.term.prev_date[i].menu == CUR_MENU) {
+      foundIndex = i;
+      break;
+    }
+  }
+
+  if (foundIndex > -1) {
+    OPTIONS.term.prev_date[foundIndex] = prev_date;
+  } else {
+    OPTIONS.term.prev_date.push(prev_date);
+  }
+  chrome.storage.sync.set(OPTIONS, function () {});
+}
+
+function isValidTerm(from, to) {
+  var fromDate = moment(from, "YYYY-MM-DD");
+  var toDate = moment(to, "YYYY-MM-DD");
+
+  return toDate.diff(fromDate, 'days') >= 0;
+}
+
+function getBlobFromURL(url, retry_cnt) {
   return new Promise((resolve, reject) => {
     try {
       var xhr = new XMLHttpRequest();
@@ -526,7 +627,12 @@ function getBlobFromURL(url) {
       };
       xhr.send();
     } catch (e) {
-      reject(e);
+      if (retry_cnt > 3) {
+        console.log("시도횟수 초과: " + url);
+        return reject(e);
+      }
+      console.log("재시도 (" + ++retry_cnt + "): " + url);
+      return getBlobFromURL(url, retry_cnt);
     }
   });
 }
@@ -545,53 +651,45 @@ function downloadFileFromBlob(blob, fileName) {
     document.body.removeChild(a);
   }, OPTIONS.down_delay);
 }
+// #endregion 공통
 
-function getLastPageIndex() {
-  return new Promise((resolve, reject) => {
-    var last_page_index = 1;
-    var paging = $("ul[class='pagination pagination-sm'] li");
+// #region 상태 진행 바 팝업
+function showProgressBar() {
+  if (PROGRESS_MODAL == undefined) {
+    var modal = '<div class="modal fade" id="pleaseWaitDialog" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">';
+    modal += '<div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h2>다운로드 중 입니다</h2></div>';
+    modal += '<div class="modal-body"><div class="progress">';
+    modal += '<div id="progress-bar" class="progress-bar progress-bar-success progress-bar-striped active" role="progressbar">';
+    modal += '<span class="sr-only">0%</span></div></div></div></div></div></div>';
 
-    if (paging.length > 0) {
-      last_page_index = $(paging[paging.length - 1]).text().trim();
-      if (last_page_index == ">") last_page_index = $(paging[paging.length - 2]).text().trim();
+    PROGRESS_MODAL = $(modal);
+    PROGRESS_MODAL.appendTo("body");
+  }
+  PROGRESS_MODAL.modal('show');
+}
+
+function setProgress(progress, message) {
+  if (PROGRESS_MODAL != undefined) {
+    if (message != undefined) $("div.modal-header h2").text(message);
+    if (progress != -1) {
+      var cur_progress = getProgress();
+      if (cur_progress < progress) $("#progress-bar").css("width", `${progress}%`);
     }
-
-    resolve(last_page_index);
-  });
+  } else {
+    console.log(progress + " : " + message);
+  }
 }
 
-function getFirstArticlesDateString() {
-  return getLastPageIndex().then(last_page_index => {
-    var url = `${BASE_URI}/${CUR_MENU}/?page=${last_page_index}`;
-
-    return ajaxGet(url).then(source => {
-      var selector = "";
-
-      if (CUR_MENU == 'reports') {
-        selector = ".report-list-wrapper a:last";
-      } else if (CUR_MENU == 'albums') {
-        selector = ".album-list-wrapper a:last";
-      }
-      return getArticleDateString(BASE_URI + $(source).find(selector).attr("href"));
-    });
-  });
+function getProgress() {
+  var cur = $("#progress-bar").width();
+  if (cur == 0) cur = 1;
+  var cur2 = $("#progress-bar").parent().width();
+  return 100 * cur / cur2;
 }
 
-function getArticleDateString(url) {
-  return ajaxGet(url).then(source => {
-    var date_string = $(source).find(DATE_SELECTOR).text();
-
-    if (CUR_MENU == 'reports') {
-      return moment(date_string, REPORTS_DATE_FORMAT).format("YYYY-MM-DD");
-    } else if (CUR_MENU == 'albums') {
-      return moment(date_string, ALBUMS_DATE_FORMAT).format("YYYY-MM-DD");
-    }
-  });
+function closeProgressBar() {
+  if (PROGRESS_MODAL != undefined) {
+    PROGRESS_MODAL.modal('hide');
+  }
 }
-
-function isValidTerm(from, to) {
-  var fromDate = moment(from, "YYYY-MM-DD");
-  var toDate = moment(to, "YYYY-MM-DD");
-
-  return toDate.diff(fromDate, 'days') >= 0;
-}
+// #endregion 상태 진행 바 팝업
